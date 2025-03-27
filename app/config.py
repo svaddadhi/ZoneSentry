@@ -1,17 +1,13 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file if it exists
 load_dotenv()
 
-# API and Clinician Info
 API_BASE_URL = os.getenv("API_BASE_URL", "https://3qbqr98twd.execute-api.us-west-2.amazonaws.com/test")
 CLINICIAN_IDS = [int(id) for id in os.getenv("CLINICIAN_IDS", "1,2,3,4,5,6").split(",")]
 
-# Polling Settings
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "120"))  # Poll every 2 minutes
 
-# SMTP Email Settings
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")

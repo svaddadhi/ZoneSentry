@@ -5,7 +5,6 @@ from fastapi import FastAPI
 
 from .poller import check_clinicians_periodically
 
-# Configure global logging with timestamps (ISO-ish date) and log level
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
@@ -19,7 +18,6 @@ async def lifespan(app: FastAPI):
     yield
     task.cancel()
 
-# Create FastAPI app
 app = FastAPI(lifespan=lifespan)
 
 @app.get("/health")
