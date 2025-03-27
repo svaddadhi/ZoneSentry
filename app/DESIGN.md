@@ -53,6 +53,9 @@ ZoneSentry is a monitoring service that polls a Clinician Status API for a set o
 
 ## Design and Architecture
 
+<img width="968" alt="Screenshot 2025-03-27 at 1 24 50 PM" src="https://github.com/user-attachments/assets/4eb974f6-c393-4111-8733-9bf23abd870a" />
+
+
 1. **FastAPI Application**
 
    - `main.py` sets up a FastAPI instance with a startup hook that launches the async background task.
