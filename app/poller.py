@@ -81,7 +81,6 @@ def is_out_of_zone(point: Point, polygons: List[Polygon]) -> bool:
     
     # A clinician is in the zone if they're inside ANY of the polygons
     for polygon in polygons:
-        # We use contains() rather than within() to treat boundary differently
         if polygon.contains(point):
             return False
     

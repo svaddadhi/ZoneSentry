@@ -43,6 +43,24 @@ ZoneSentry is a monitoring service that polls a Clinician Status API for a set o
 - The current implementation keeps things straightforward while still providing reliable email alerts.
 - Email alerts include clinician ID and a clear message about zone departure.
 
+### Polling Interval Choice
+
+The service uses a 120-second (2-minute) polling interval based on several critical factors:
+
+1. **Alert Timing Requirement**: The 2-minute interval ensures alerts are sent within the required 5-minute window. Even if a clinician leaves their zone immediately after a polling cycle completes, the next cycle will detect this within 2 minutes, allowing ample time for the alert to be processed and delivered before the 5-minute deadline.
+
+2. **API Conservation**: By polling every 2 minutes rather than every minute, the service makes 50% fewer API calls while still comfortably meeting the alert timing requirements. This approach is mindful of the API's resources and the explicit request to avoid high query rates.
+
+3. **Balanced Tradeoffs**:
+
+   - Shorter intervals (60 seconds) would provide more immediate detection but double the API load
+   - Longer intervals (3+ minutes) would further reduce API calls but risk missing the 5-minute alert window
+   - The 120-second interval provides optimal balance between responsiveness and resource efficiency
+
+4. **Scalability**: With 6 clinicians being polled every 2 minutes, the service makes approximately 3 requests per minute (0.05 QPS), staying well below the 100 QPS limit. This approach allows for future scaling to monitor many more clinicians without risking API rate limits.
+
+The polling interval can be adjusted via the POLL_INTERVAL environment variable if different requirements emerge in the future.
+
 ### Deployment Options
 
 1. **Local / VM**: The service can run with `uvicorn app.main:app` on a small VPS or local machine.
@@ -54,7 +72,6 @@ ZoneSentry is a monitoring service that polls a Clinician Status API for a set o
 ## Design and Architecture
 
 <img width="968" alt="Screenshot 2025-03-27 at 1 24 50 PM" src="https://github.com/user-attachments/assets/4eb974f6-c393-4111-8733-9bf23abd870a" />
-
 
 1. **FastAPI Application**
 
