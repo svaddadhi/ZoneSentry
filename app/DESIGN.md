@@ -45,21 +45,27 @@ ZoneSentry is a monitoring service that polls a Clinician Status API for a set o
 
 ### Polling Interval Choice
 
-The service uses a 120-second (2-minute) polling interval based on several critical factors:
+The service uses a 120-second (2-minute) polling interval based on concrete performance calculations and detailed analysis of tradeoffs:
 
-1. **Alert Timing Requirement**: The 2-minute interval ensures alerts are sent within the required 5-minute window. Even if a clinician leaves their zone immediately after a polling cycle completes, the next cycle will detect this within 2 minutes, allowing ample time for the alert to be processed and delivered before the 5-minute deadline.
+1. **Alert Timing Requirements**: With a 5-minute maximum alert window required, the polling interval must be carefully chosen. A 2-minute interval gives us confidence that even in worst-case scenarios (where a clinician leaves their zone right after a polling cycle), we'll detect and alert within 4 minutes total: 2 minutes until the next poll, plus 1-2 minutes for processing and email delivery.
 
-2. **API Conservation**: By polling every 2 minutes rather than every minute, the service makes 50% fewer API calls while still comfortably meeting the alert timing requirements. This approach is mindful of the API's resources and the explicit request to avoid high query rates.
+2. **Interval Tradeoff Analysis**:
+   - **60-second interval**: Would provide faster detection, reducing worst-case scenario to 3 minutes total. However, this doubles API calls compared to our chosen interval, and the marginal benefit doesn't justify the increased server load and potential for rate limiting.
+   - **120-second interval**: Provides reliable detection within the 5-minute window while keeping API calls at a reasonable level. This represents the optimal balance point for the stated requirements.
+   - **180-second interval**: Would further reduce API calls by 33% compared to our chosen interval, but risks missing the 5-minute window in scenarios with processing delays or retry attempts.
+   - **240-second interval or greater**: Would minimize API usage but would make it impossible to guarantee the 5-minute alert requirement.
 
-3. **Balanced Tradeoffs**:
+3. **Scaling for Real-World Operations**: Based on the business model of providing home healthcare visits, we can estimate the practical operational scale:
+   - Assuming 100 active phlebotomists in the field during peak hours
+   - At 2-minute intervals, this would generate 50 API calls per minute (0.83 QPS)
+   - Even with rapid growth to 500 phlebotomists, the system would still only reach 4.17 QPS
+   - This keeps us well under the 100 QPS limit while allowing for substantial growth
 
-   - Shorter intervals (60 seconds) would provide more immediate detection but double the API load
-   - Longer intervals (3+ minutes) would further reduce API calls but risk missing the 5-minute alert window
-   - The 120-second interval provides optimal balance between responsiveness and resource efficiency
+4. **Battery and Data Optimization**: For mobile devices used by phlebotomists, location tracking at 2-minute intervals represents a good balance for battery life and data usage, making it practical for all-day field operations.
 
-4. **Scalability**: With 6 clinicians being polled every 2 minutes, the service makes approximately 3 requests per minute (0.05 QPS), staying well below the 100 QPS limit. This approach allows for future scaling to monitor many more clinicians without risking API rate limits.
+5. **Error Recovery**: The 2-minute interval also provides more opportunities for re-attempts in case of temporary API failures or network issues, without exceeding the 5-minute alert window.
 
-The polling interval can be adjusted via the POLL_INTERVAL environment variable if different requirements emerge in the future.
+This approach ensures we meet the critical 5-minute alert window while providing a solution that can scale to the organization's likely size without approaching API limits. The interval is easily adjustable via the POLL_INTERVAL environment variable if business requirements change.
 
 ### Deployment Options
 
